@@ -1,10 +1,55 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Hockey Cards</title>
-  </head>
-  <body>
-    <h1>Hockey Cards Web</h1>
-    <p>Toto je testovací stránka, která ověří, že Vercel funguje.</p>
-  </body>
+<head>
+<title>Hockey Cards</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+</head>
+
+<body>
+
+<h1>Hockey Cards</h1>
+
+<input type="text" id="search" placeholder="Search player">
+
+<div id="cards"></div>
+
+<script>
+
+const supabaseUrl = "TVUJ_SUPABASE_URL"
+const supabaseKey = "TVUJ_ANON_KEY"
+
+const supabase = supabase.createClient(supabaseUrl, supabaseKey)
+
+async function loadCards() {
+
+const { data, error } = await supabase
+.from('cards')
+.select('*')
+.limit(100)
+
+let container = document.getElementById("cards")
+container.innerHTML = ""
+
+data.forEach(card => {
+
+container.innerHTML += `
+<div style="border:1px solid #ccc;padding:10px;margin:10px">
+
+<h3>${card.player}</h3>
+<p>${card.set} ${card.year} #${card.card_number}</p>
+
+<a href="${card.ebay_link}" target="_blank">View on eBay</a>
+
+</div>
+`
+
+})
+
+}
+
+loadCards()
+
+</script>
+
+</body>
 </html>
