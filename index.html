@@ -1,54 +1,77 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
 <title>Hockey Cards</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<style>
+body { font-family: sans-serif; margin: 20px; }
+.card { border:1px solid #ccc; padding:10px; margin:10px; display:inline-block; width:200px; vertical-align:top; }
+.card img { width:100%; height:auto; }
+input { padding:5px; margin-bottom:20px; width:300px; }
+</style>
 </head>
-
 <body>
 
 <h1>Hockey Cards</h1>
-
-<input type="text" id="search" placeholder="Search player">
-
+<input type="text" id="search" placeholder="Search player...">
 <div id="cards"></div>
 
 <script>
+// =======================
+// 1️⃣ DOPLŇ SVÉ ÚDAJE Z SUPABASE SEM
+// =======================
+const supabaseUrl = "https://oabthojciiqmlriovtkb.supabase.co"; // např. https://abcd1234.supabase.co
+const supabaseKey = "sb_publishable_6MIP-F_j9HPSk5fYjvsLIw_rrSFnAIx";    // anon/public key
 
-const supabaseUrl = "https://oabthojciiqmlriovtkb.supabase.co"
-const supabaseKey = "sb_publishable_6MIP-F_j9HPSk5fYjvsLIw_rrSFnAIx"
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-const supabase = supabase.createClient(supabaseUrl, supabaseKey)
-
+// =======================
+// 2️⃣ Funkce na načtení karet
+// =======================
 async function loadCards() {
+  const { data, error } = await supabase
+    .from('cards')  // pokud se tvoje tabulka jmenuje jinak, změň 'cards'
+    .select('*');
 
-const { data, error } = await supabase
-.from('cards')
-.select('*')
-.limit(100)
+  if (error) {
+    console.error("Chyba při načítání karet:", error);
+    document.getElementById("cards").innerHTML = "<p>Chyba při načítání karet. Zkontroluj Supabase URL, key a RLS nastavení.</p>";
+    return;
+  }
 
-let container = document.getElementById("cards")
-container.innerHTML = ""
+  const container = document.getElementById("cards");
+  container.innerHTML = "";
 
-data.forEach(card => {
-
-container.innerHTML += `
-<div style="border:1px solid #ccc;padding:10px;margin:10px">
-
-<h3>${card.player}</h3>
-<p>${card.set} ${card.year} #${card.card_number}</p>
-
-<a href="${card.ebay_link}" target="_blank">View on eBay</a>
-
-</div>
-`
-
-})
-
+  data.forEach(card => {
+    container.innerHTML += `
+      <div class="card">
+        <img src="${card.image_url}" alt="${card.player}">
+        <h3>${card.player}</h3>
+        <p>${card.set} ${card.year} #${card.card_number}</p>
+        <p>Price: ${card.avg_price ? "$" + card.avg_price : "N/A"}</p>
+        <a href="${card.ebay_link}" target="_blank">View on eBay</a>
+      </div>
+    `;
+  });
 }
 
-loadCards()
+// =======================
+// 3️⃣ Funkce pro vyhledávání hráče
+// =======================
+document.getElementById("search").addEventListener("input", (e) => {
+  const filter = e.target.value.toLowerCase();
+  const cards = document.querySelectorAll(".card");
+  cards.forEach(card => {
+    const name = card.querySelector("h3").innerText.toLowerCase();
+    card.style.display = name.includes(filter) ? "inline-block" : "none";
+  });
+});
 
+// =======================
+// 4️⃣ Načti karty při startu
+// =======================
+loadCards();
 </script>
 
 </body>
